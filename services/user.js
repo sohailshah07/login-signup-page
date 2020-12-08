@@ -1,8 +1,14 @@
 const Model = require('../model');
 const md5 = require('md5');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Schema.Types;
 
 //login api
 exports.login = login;
+exports.changePassword = changePassword;
+exports.signup = signup;
+
+
 
 async function login(req, res) {
     // console.log('logging req----', req.body);
@@ -27,7 +33,6 @@ async function login(req, res) {
 }
 
 //signup api
-exports.signup = signup;
 
 async function signup(req, res) {
     console.log('logging req----', req.body);
@@ -57,6 +62,40 @@ async function signup(req, res) {
         else {
             console.log('-----ifEmail inside else block----', ifEmailExist);
             res.send('user with this email alredy exist please use different email')
+        }
+    }
+}
+
+//changePassword api
+
+
+async function changePassword(req, res) {
+    console.log('------logging request--', req.body);
+    const id = req.body._id;
+    const oldPassword = req.body.oldPassword;
+    const newPassword = req.body.newPassword;
+    const confirmPassword = req.body.confirmPassword;
+    console.log('--', id, oldPassword, newPassword);
+    if (!id || !oldPassword || !newPassword || !confirmPassword) {
+        res.send("Parameter Missing or Parameter type is wrong");
+    }
+    else {
+        const user = await Model.UserModel.findOne({ _id: id });
+        if (user.password != md5(oldPassword)) {
+            res.send("Old password is not correct");
+        }
+        else {
+            if (user.password == md5(newPassword)) {
+                res.send("Password can not be same as previous password");
+            } else {
+                if (confirmPassword != newPassword) {
+                    res.send('password did not match please confirm password');
+                }
+                else {
+                    const result = await Model.UserModel.findOneAndUpdate({ _id: id }, { password: md5(newPassword) }, { new: true });
+                    res.send({ message: 'Password Updated Successfully', data: result });
+                }
+            }
         }
     }
 }

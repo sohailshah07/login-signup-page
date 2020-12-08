@@ -13,6 +13,8 @@ const userModule = require('./services/user')
 app.post('/login', userModule.login);
 //signup page
 app.post('/signup', userModule.signup);
+//change password
+app.post('/changePassword', userModule.changePassword);
 
 connection.connect();
 
