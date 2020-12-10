@@ -15,8 +15,14 @@ var UserModel=new Schema({
     },
     password: {
         type: String
+    },
+    phoneNumber: {
+        type: String
+    },
+    addres: {
+        type: String
     }
-}, {
+},{
     timestamps: true,
     toJSON: {virtuals: true},
     toObject: {virtuals: true}
