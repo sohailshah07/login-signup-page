@@ -2,7 +2,12 @@ const Model = require('../model');
 const md5 = require('md5');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Schema.Types;
-const responsemsg = require('../contants/response');
+const response = require('../contants/response');
+const { get } = require('http');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
+const { model } = require('../model/User');
+const verifyToken = require('../verifyToken')
 
 //login api
 exports.login = login;
@@ -11,33 +16,30 @@ exports.signup = signup;
 exports.getUserProfile = getUserProfile;
 exports.editProfile = editProfile;
 
-
 async function login(req, res) {
-    // console.log('logging req----', req.body);
     const email = req.body.email;
     const password = md5(req.body.password);
-    // console.log('--------psw--------',password);
     if (!email || !password) {
-        res.send(responsemsg.parammissing);
+        res.send(response.parammissing);
     }
     else {
         const isUserExists = await Model.UserModel.findOne({ email: email });
         if (isUserExists == null) {
-            res.send(responsemsg.userExist)
+            res.send(response.userExist)
         } else {
             if (isUserExists.password != password) {
-                res.send(responsemsg.wrongPassword);
+                res.send(response.wrongPassword);
             } else {
-                res.send({message: responsemsg.sucessLogin, data: isUserExists});
+                let newToken = jwt.sign({ id: isUserExists._id }, config.secret, {
+                    expiresIn: 86400 // expires in 24 hours
+                });
+                const saveToken = await Model.UserModel.findOneAndUpdate({ _id: isUserExists._id }, { authToken: newToken }, { new: true });
+                res.send({ message: response.sucessLogin, data: saveToken });
             }
         }
     }
 }
-
-//signup api
-
 async function signup(req, res) {
-    console.log('logging req----', req.body);
     const firstName = req.body.firstName;
     const lastName = req.body.lastName;
     const email = req.body.email;
@@ -45,12 +47,11 @@ async function signup(req, res) {
     const addres = req.body.addres;
     const phoneNumber = req.body.phoneNumber;
 
-    if (!email || !password || !firstName || !addres || !phoneNumber ) {
-        res.send(responsemsg.parammissing);
+    if (!email || !password || !firstName || !addres || !phoneNumber) {
+        res.send(response.parammissing);
     }
     else {
         const ifEmailExist = await Model.UserModel.findOne({ email: email });
-        console.log('------ifEmailExist---', ifEmailExist)
         if (!ifEmailExist) {
             dataObj = {
                 firstName: firstName,
@@ -61,29 +62,21 @@ async function signup(req, res) {
                 phoneNumber: phoneNumber
             }
 
-            console.log('-------dataObje-----', dataObj);
             const save = await Model.UserModel.create(dataObj);
-            console.log('-----save----', save);
-            res.send(responsemsg.signUp);
+            res.send(response.signUp);
         }
         else {
-            console.log('-----ifEmail inside else block----', ifEmailExist);
-            res.send(responsemsg.userExist)
+            res.send(response.userExist)
         }
     }
 }
-
-//changePassword api
-
 async function changePassword(req, res) {
-    console.log('------logging request--', req.body);
     const id = req.body._id;
     const oldPassword = req.body.oldPassword;
     const newPassword = req.body.newPassword;
     const confirmPassword = req.body.confirmPassword;
-    console.log('--', id, oldPassword, newPassword);
     if (!id || !oldPassword || !newPassword || !confirmPassword) {
-        res.send(responsemsg.parammissing);
+        res.send(response.parammissing);
     }
     else {
         const user = await Model.UserModel.findOne({ _id: id });
@@ -92,10 +85,10 @@ async function changePassword(req, res) {
         }
         else {
             if (user.password == md5(newPassword)) {
-                res.send(responsemsg.samePassword);
+                res.send(response.samePassword);
             } else {
                 if (confirmPassword != newPassword) {
-                    res.send(responsemsg.unmatchPassword);
+                    res.send(response.unmatchPassword);
                 }
                 else {
                     const result = await Model.UserModel.findOneAndUpdate({ _id: id }, { password: md5(newPassword) }, { new: true });
@@ -105,42 +98,37 @@ async function changePassword(req, res) {
         }
     }
 }
-
-//getting user profile
-
 async function getUserProfile(req, res) {
-    const id = req.body._id;
-    const userData = await Model.UserModel.findOne({ _id: id });
-    console.log('----------logging ----------', userData);
+    const user = decodedData.id;
+    const userData = await Model.UserModel.findOne({ _id: user });
     res.send({ message: ' User Profile', data: userData });
 }
-
-//edit profile
-
 async function editProfile(req, res) {
     const id = req.body._id;
     if (!id) {
-        res.send(responsemsg.parammissing);
+        res.send(response.parammissing);
     }
     else {
         const updateObj = {};
-        if(req.body.firstName){
+        if (req.body.firstName) {
             updateObj.firstName = req.body.firstName;
         }
-        if(req.body.lastName){
+        if (req.body.lastName) {
             updateObj.lastName = req.body.lastName;
         }
-        if(req.body.email){
+        if (req.body.email) {
             updateObj.email = req.body.email;
         }
-        if(req.body.addres){
+        if (req.body.addres) {
             updateObj.addres = req.body.addres;
         }
-        if(req.body.phoneNumber){
+        if (req.body.phoneNumber) {
             updateObj.phoneNumber = req.body.phoneNumber;
         }
-        console.log('---updateObj----', updateObj);
-        const updateUserDetails = await Model.UserModel.findByIdAndUpdate({_id : id}, updateObj, {new: true})
-        res.send({message: responsemsg.update, data: updateUserDetails});
+        const updateUserDetails = await Model.UserModel.findByIdAndUpdate({ _id: id }, updateObj, { new: true })
+        res.send({ message: response.update, data: updateUserDetails });
     }
 }
+
+
+

@@ -7,6 +7,7 @@ const responseMessages =
     signUp: "Signup sucessful",
     update: "updated sucessfully.",
     samePassword: "Password can not be same as previous password.",
+    unmatchPassword: "password did not match please confirm password"
 
 }
 module.exports = responseMessages;

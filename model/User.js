@@ -21,6 +21,10 @@ var UserModel=new Schema({
     },
     addres: {
         type: String
+    },
+    authToken: {
+        type: String,
+        default: null
     }
 },{
     timestamps: true,
