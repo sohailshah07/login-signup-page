@@ -8,9 +8,11 @@ const Model = require('./model');
 const md5 = require('md5');
 const userModule = require('./services/user');
 const verifyToken = require('./verifyToken');
+const multer = require('multer')
+const upload = multer({ dest: "public/uploads/" })
 
 app.post('/login', userModule.login);
-app.post('/signup', userModule.signup);
+app.post('/signup', upload.single("photo"), userModule.signup);
 app.post('/changePassword', verifyToken, userModule.changePassword);
 app.post('/getUserProfile', verifyToken, userModule.getUserProfile);
 app.post('/editProfile', verifyToken, userModule.editProfile);

@@ -7,8 +7,8 @@ const { get } = require('http');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { model } = require('../model/User');
-const verifyToken = require('../verifyToken')
-
+const verifyToken = require('../verifyToken');
+const path = require('path');
 //login api
 exports.login = login;
 exports.changePassword = changePassword;
@@ -41,11 +41,14 @@ async function login(req, res) {
 }
 async function signup(req, res) {
     const firstName = req.body.firstName;
+    // const photo = `${req.file.fieldname}_${path.extname(file.originalname)}`;
+    const photo = `${req.file.fieldname}_${Date.now()}${path.extname(req.file.originalname)}`;
     const lastName = req.body.lastName;
     const email = req.body.email;
     const password = md5(req.body.password);
     const addres = req.body.addres;
     const phoneNumber = req.body.phoneNumber;
+    console.log('----photo---', photo);
 
     if (!email || !password || !firstName || !addres || !phoneNumber) {
         res.send(response.parammissing);
@@ -59,7 +62,8 @@ async function signup(req, res) {
                 addres: addres,
                 email: email,
                 password: password,
-                phoneNumber: phoneNumber
+                phoneNumber: phoneNumber,
+                photo: photo
             }
 
             const save = await Model.UserModel.create(dataObj);

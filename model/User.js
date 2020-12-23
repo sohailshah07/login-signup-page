@@ -11,18 +11,26 @@ var UserModel=new Schema({
         default: null
     },
     email: {
-        type: String
+        type: String,
+        default: null
     },
     password: {
-        type: String
+        type: String,
+        default: null
     },
     phoneNumber: {
-        type: String
+        type: String,
+        default: null
     },
     addres: {
-        type: String
+        type: String,
+        default: null
     },
     authToken: {
+        type: String,
+        default: null
+    },
+    photo: {
         type: String,
         default: null
     }
