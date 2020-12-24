@@ -103,9 +103,11 @@ async function changePassword(req, res) {
     }
 }
 async function getUserProfile(req, res) {
-    const user = decodedData.id;
-    const userData = await Model.UserModel.findOne({ _id: user });
-    res.send({ message: ' User Profile', data: userData });
+    const user = req.decodedData;
+    let userData = await Model.UserModel.findOne({ _id: user.id }).lean();
+  
+    res.send({ message: ' User Profile', data: userData});
+
 }
 async function editProfile(req, res) {
     const id = req.body._id;
